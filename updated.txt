@@ -18,7 +18,43 @@ public void uploadFile(By locator, String filePath) {
 import export
 
 
-public void addProperty(boolean expectSuccess) {
+private void navigateToImportExport() {
+	    try {
+	        waitForElementVisible(By.linkText("Property Management"), 10);
+	        element("linktext", "Property Management").click();
+	        ExtentManager.testreport("info", "Clicked Property Management");
+
+	        waitForElementVisible(By.linkText("Property"), 10);
+	        element("linktext", "Property").click();
+	        ExtentManager.testreport("info", "Clicked Property");
+
+	        waitForElementVisible(By.xpath("//a[normalize-space(text())='Import / Export']"), 10);
+	        element("xpath", "//a[normalize-space(text())='Import / Export']").click();
+	        ExtentManager.testreport("info", "Clicked Import/Export");
+
+	    } catch (Exception e) {
+	        ExtentManager.testreport("fail", "Navigation to Import/Export failed: " + e.getMessage());
+	        throw e;
+	    }
+	}
+
+	public void donwloadTemplate() {
+		try {
+			navigateToImportExport(); // helper method for repeated navigation
+
+			
+			waitForElementVisible(By.linkText("Download"), 10);
+			element("linktext", "Download").click();
+			ExtentManager.testreport("info", "Download Started");
+			
+		} catch (Exception e) {
+		    System.err.println("Error :" + e);
+		    throw e; // ✅ re-throw to fail the test
+		}
+		
+	}
+
+	public void addProperty(boolean expectSuccess) {
 	    try {
 	        navigateToImportExport(); // navigate once
 
@@ -121,4 +157,5 @@ Import export test
 
 	        // Use file path from Excel or main config
 	        //template.addProperty(true);
+
 	    }
