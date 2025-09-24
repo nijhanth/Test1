@@ -1,0 +1,124 @@
+Selenium base 
+
+public void uploadFile(By locator, String filePath) {
+		    try {
+		        // Wait until the element is visible
+		        waitForElementVisible(locator, 10);
+
+		        // Find element and send file path
+		        WebElement fileInput = driver.findElement(locator);
+		        fileInput.sendKeys(filePath);
+
+		        System.out.println("File selected for upload: " + filePath);
+		    } catch (Exception e) {
+		        System.err.println("Failed to upload file: " + e.getMessage());
+		    }
+
+
+import export
+
+
+public void addProperty(boolean expectSuccess) {
+	    try {
+	        navigateToImportExport(); // navigate once
+
+	        By fileInputLocator = By.xpath("//input[@id='file']");
+	        WebElement fileInput = driver.findElement(fileInputLocator);
+
+	        // Make input visible
+	        ((JavascriptExecutor) driver).executeScript("arguments[0].style.display='block';", fileInput);
+
+	        // Send file path
+	        String filePath = ExcelReader.getPropertyFilePath();
+	        fileInput.sendKeys(filePath);
+	        ExtentManager.testreport("info", "File selected for upload: " + filePath);
+
+	        // Click Add button
+	        By addButton = By.xpath("//button[contains(@class,'upload-btn') and normalize-space(text())='Add']");
+	        WebElement addBtn = driver.findElement(addButton);
+	        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addBtn);
+	        
+	        waitForElementVisible(By.xpath(" //button[.='Yes']"), 10);
+	        element("xpath",  "//button[.='Yes']").click();
+	        ExtentManager.testreport("info", "Clicked Yes button");
+	      //button[.='Yes']
+
+	        // Wait for messages
+	        Thread.sleep(2000);
+	        By successMsg = By.xpath("//h2[.='Imported Successfully']");
+	        By errorMsg   = By.xpath("//h2[.='Error While Importing!']");
+	        By okButton   = By.xpath("//button[.='OK']");
+
+	        if (driver.findElements(successMsg).size() > 0) {
+	            WebElement okBtn = new WebDriverWait(driver, Duration.ofSeconds(10))
+	                                    .until(ExpectedConditions.elementToBeClickable(okButton));
+	            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", okBtn);
+
+	            if (expectSuccess) {
+	                ExtentManager.testreport("pass", "Property uploaded successfully");
+	            } else {
+	                ExtentManager.testreport("fail", "Negative test failed: upload succeeded unexpectedly");
+	                Assert.fail("Negative test failed: upload succeeded unexpectedly");
+	            }
+
+	        } else if (driver.findElements(errorMsg).size() > 0) {
+	            WebElement okBtn = new WebDriverWait(driver, Duration.ofSeconds(10))
+	                                    .until(ExpectedConditions.elementToBeClickable(okButton));
+	            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", okBtn);
+
+	            if (!expectSuccess) {
+	                ExtentManager.testreport("pass", "Negative test passed: upload failed as expected");
+	            } else {
+	                String errorText = driver.findElement(errorMsg).getText();
+	                ExtentManager.testreport("fail", "Property upload failed: " + errorText);
+	                Assert.fail("Upload failed: " + errorText);
+	            }
+
+	        } else {
+	            ExtentManager.testreport("fail", "Property upload status unknown");
+	            Assert.fail("Upload status unknown");
+	        }
+
+	    } catch (Exception e) {
+	        // Only handle unexpected exceptions
+	        ExtentManager.testreport("fail", "Unexpected exception during upload: " + e.getMessage());
+	        Assert.fail("Unexpected exception: " + e.getMessage());
+	    }
+	}
+
+
+Excelreader
+
+ public static String getPropertyFilePath() {
+	        fileLocation = "./src/main/resources/DataFile.xlsx";
+	        String value = null;
+	        try {
+	            fis = new FileInputStream(fileLocation);
+	            workbook = new XSSFWorkbook(fis);
+
+	            XSSFSheet sheet = workbook.getSheet("Property_File_Path");
+	            XSSFRow row = sheet.getRow(1); // row 1 = second row (skip header)
+	            XSSFCell cell = row.getCell(0); // New Property File Name column
+	            value = cell.getStringCellValue();
+
+	            workbook.close();
+	            fis.close();
+	        } catch (IOException e) {
+	            System.err.println("❌ Error reading Property File Name:");
+	            e.printStackTrace();
+	        }
+	        return value;
+	    }
+
+
+
+
+Import export test
+
+@Test(priority = 1, dependsOnGroups = "login")
+	    public void addPropertyPositiveTest() {
+	        ImportExport template = new ImportExport();
+
+	        // Use file path from Excel or main config
+	        //template.addProperty(true);
+	    }
